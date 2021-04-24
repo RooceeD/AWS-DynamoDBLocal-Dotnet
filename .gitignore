@@ -1,0 +1,10 @@
+.vs
+.vscode
+
+DynamoDbLocal/.vs
+DynamoDbLocal/bin
+DynamoDbLocal/obj
+
+Tests/bin
+Tests/obj
+Tests/dynamodb_local_latest

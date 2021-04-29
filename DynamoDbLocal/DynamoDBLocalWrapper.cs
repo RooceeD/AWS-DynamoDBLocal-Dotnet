@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace DynamoDbLocal
 {
-    public class DynamoDBLocalWrapper
+    public class DynamoDbLocalWrapper
     {
         private static readonly string InMemoryParameter = "inMemory";
         private static readonly string SharedDbParamenter = "sharedDb";
@@ -16,15 +16,11 @@ namespace DynamoDbLocal
         private static readonly string DynamoDbLocalLibFolder = "DynamoDBLocal_lib";
         private static readonly string CurrentDir = AppDomain.CurrentDomain.BaseDirectory;
 
-        public static Process CreateInMemoryDbProcess(int port = 8000)
-        {
-            return CreateDbProcess(InMemoryParameter, port);
-        }
+        public static Process CreateInMemoryDbProcess(int port = 8000, string? environmentVariableName = null) => 
+            CreateDbProcess(InMemoryParameter, port, JarFileEnvironmentPath(environmentVariableName));
 
-        public static Process CreateSharedDbProcess(int port = 8000)
-        {
-            return CreateDbProcess(SharedDbParamenter, port);
-        }
+        public static Process CreateSharedDbProcess(int port = 8000, string? environmentVariableName = null) => 
+            CreateDbProcess(SharedDbParamenter, port, JarFileEnvironmentPath(environmentVariableName));
 
         public static Process CreateProcess(string input, string workingDirectory = "")
         {
@@ -53,15 +49,18 @@ namespace DynamoDbLocal
             new BasicAWSCredentials(accessKey, secretKey),
             new AmazonDynamoDBConfig { ServiceURL = $"http://localhost:{port}" });
 
-        private static Process CreateDbProcess(string type, int port = 8000)
+        private static Process CreateDbProcess(string type, int port = 8000, string? jarFileEnvironmentPath = null)
         {
             return CreateProcess(
                 GetJavaArgumentsForLocalDynamoDb(type, port),
-                GetJarFilePathForLocalDynamoDb);
+                jarFileEnvironmentPath ?? GetJarFilePathForLocalDynamoDb);
         }
 
         private static string GetJavaArgumentsForLocalDynamoDb(string type, int port) =>
             $"java -DJava.library.path={Path.DirectorySeparatorChar}{DynamoDbLocalLibFolder} -jar {DynamoDbLocalJarName} -{type} -port {port}";
+
+        private static string? JarFileEnvironmentPath(string? environmentVariableName) => 
+            Environment.GetEnvironmentVariable(environmentVariableName ?? string.Empty);
 
         private static string GetJarFilePathForLocalDynamoDb => Path.GetFullPath(Path.Combine(
             GetRootPath(CurrentDir) + Path.DirectorySeparatorChar + DynamoDbLocalFolder));
